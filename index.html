@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>对客对商进度透出全景地图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;font-size:11px;color:#222}
+.top-header{background:#1a1a2e;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.top-header h1{font-size:15px;font-weight:700;letter-spacing:1px}
+.top-header .sub{font-size:9px;color:#aaa;margin-top:2px}
+.legend{display:flex;gap:12px;align-items:center;font-size:10px}
+.legend-item{display:flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dg{background:#52c41a}.dr{background:#ff4d4f}.db{background:#1890ff}.do{background:#fa8c16}
+.stats-bar{display:flex;background:#fff;border-bottom:1px solid #e8e8e8}
+.stat-item{flex:1;padding:10px 16px;border-right:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+.stat-icon{font-size:20px}
+.stat-num{font-size:20px;font-weight:800}
+.sng{color:#52c41a}.snr{color:#ff4d4f}.snb{color:#1890ff}.snp{color:#722ed1}
+.stat-label{font-size:9px;color:#888;margin-top:2px}
+.flow-nav{background:#fff;padding:7px 16px;display:flex;align-items:center;flex-wrap:wrap;gap:2px;border-bottom:2px solid #e8e8e8}
+.flow-nav-item{display:flex;align-items:center;font-size:10px;color:#555;white-space:nowrap}
+.node-tag{background:#f5f5f5;border:1px solid #d9d9d9;border-radius:3px;padding:2px 7px;cursor:pointer}
+.node-tag:hover{background:#e6f7ff;border-color:#1890ff;color:#1890ff}
+.arrow{color:#bbb;margin:0 3px}
+.bg-notice{background:#fffbe6;border-left:3px solid #faad14;padding:6px 16px;font-size:10px;color:#7a5f00;margin:8px 12px;border-radius:2px}
+.section{margin:8px 12px 0 12px;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0}
+.section-header{padding:7px 12px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.badge{font-size:9px;padding:1px 6px;border-radius:10px;font-weight:400}
+.sdesc{font-size:9px;font-weight:400;opacity:.8}
+.sgw .section-header{background:#e6f9f0;color:#096dd9;border-bottom:2px solid #b7eb8f}
+.sgw{background:#f6ffed}
+.shkh .section-header{background:#e6f4ff;color:#0050b3;border-bottom:2px solid #91caff}
+.shkh{background:#f0f7ff}
+.shsj .section-header{background:#e6fffb;color:#006d75;border-bottom:2px solid #87e8de}
+.shsj{background:#f0fffe}
+.svc .section-header{background:#f9f0ff;color:#531dab;border-bottom:2px solid #d3adf7}
+.svc{background:#fdf5ff}
+.flow-table{display:flex;overflow-x:auto;padding:8px;gap:7px}
+.flow-col{min-width:130px;max-width:155px;flex-shrink:0}
+.flow-col-wide{min-width:168px;max-width:190px;flex-shrink:0}
+.col-hdr{text-align:center;font-size:10px;font-weight:700;padding:3px 5px;border-radius:4px 4px 0 0;margin-bottom:5px;border-bottom:2px solid transparent}
+.chg{background:#d9f7be;color:#237804;border-color:#52c41a}
+.chb{background:#bae7ff;color:#0050b3;border-color:#1890ff}
+.cht{background:#b5f5ec;color:#006d75;border-color:#13c2c2}
+.chp{background:#efdbff;color:#531dab;border-color:#722ed1}
+.card{border-radius:4px;padding:4px 6px;margin-bottom:4px;font-size:9.5px;line-height:1.5;position:relative}
+.ce{background:#f6ffed;border:1px solid #b7eb8f;border-left:3px solid #52c41a}
+.ct{background:#fff2f0;border:1px solid #ffccc7;border-left:3px solid #ff4d4f}
+.cn{background:#fff7e6;border:1px solid #ffd591;border-left:3px solid #fa8c16}
+.ctag{display:inline-block;font-size:8px;padding:0 3px;border-radius:2px;margin-bottom:1px;font-weight:600}
+.tf{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.tn{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.te{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tt{background:#fff2f0;color:#cf1322;border:1px solid #ffa39e}
+.ctext{color:#333;font-size:9.5px}
+.cnote{color:#888;font-size:8px;margin-top:1px;font-style:italic}
+.sgl{font-size:8px;color:#888;font-weight:600;margin:5px 0 2px 0;padding-left:3px;border-left:2px solid #d9d9d9}
+.spacer{height:8px}
+.footer{text-align:center;padding:12px;font-size:9px;color:#aaa;margin-top:10px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="top-header">
+  <div>
+    <h1>📌 对客对商进度透出全景地图</h1>
+    <div class="sub">信息在线化全景 · 对客触达能力规划 · 2026.10</div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="dot dg"></div>现有功能</div>
+    <div class="legend-item"><div class="dot dr"></div>待开发</div>
+    <div class="legend-item"><div class="dot db"></div>功能类</div>
+    <div class="legend-item"><div class="dot do"></div>通知类</div>
+  </div>
+</div>
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-icon">✅</div><div><div class="stat-num sng">63</div><div class="stat-label">现有功能条目</div></div></div>
+  <div class="stat-item"><div class="stat-icon">🔧</div><div><div class="stat-num snr">18</div><div class="stat-label">待开发条目</div></div></div>
+  <div class="stat-item"><div class="stat-icon">🖥️</div><div><div class="stat-num snb">4</div><div class="stat-label">触达系统</div></div></div>
+  <div class="stat-item"><div class="stat-icon">🗺️</div><div><div class="stat-num snp">25+</div><div class="stat-label">业务流程节点</div></div></div>
+</div>
+<div class="flow-nav">
+  <div class="flow-nav-item"><span class="node-tag">🏠 注册</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">✔ 认证</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">💳 授信</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">🔍 找货</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">📦 商品信息</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">🛒 下单</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">✅ 审批</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">📋 跟单</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">🔄 售后</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">📊 对账</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">🧾 开票</span><span class="arrow">→</span></div>
+  <div class="flow-nav-item"><span class="node-tag">💰 回款</span></div>
+</div>
+<div class="bg-notice">💡 背景：Eric飞机延误案例 → 信息不透明导致体验差。目标：把更多内部信息在线化，高效透传给客户和供应商。<strong>绿色</strong>=已实现，<strong>红色</strong>=待规划。</div>
+
+<!-- ===== 官网（客户侧）===== -->
+<div class="section sgw">
+  <div class="section-header">
+    🌐 官网（客户侧）
+    <span class="badge" style="background:#d9f7be;color:#237804;">客户自助服务门户 · 全流程覆盖</span>
+    <span class="sdesc">负责人：产研</span>
+  </div>
+  <div class="flow-table">
+    <div class="flow-col">
+      <div class="col-hdr chg">🏠 注册</div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">注册成功通知</div><div class="cnote">销售在后台帮客户注册账号</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">✔ 认证</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">申请人：官网前台展示认证审批中</div><div class="cnote">客户自主在前台认证，扫码申请加入企业</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">客户管理员：接收认证审批通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户管理员：审批列表查看申请并审批</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">申请人：接收认证审批结果通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">💳 授信</div>
+      <div class="card ct"><span class="ctag tt">待开发</span><div class="ctext">官网前台暂无客户自主申请账期功能，目前全部由销售申请</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">🔍 找货</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">被分享人：查看被分享的清单</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">被分享人：接收清单分享通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">🛒 下单</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">下单人：在订单维护需求人和收货人</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">通过清单直接下单，通知需求人下单成功</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">通过非清单下单，通知需求人订单已下单</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">收货人：接收订单已下单通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">✅ 审批</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">申请人：审批单进度查看</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">审批人：审批单进度查看</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">申请人：接收审批进度</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">审批人：接收审批申请、催批等通知</div></div>
+    </div>
+    <div class="flow-col-wide">
+      <div class="col-hdr chg">📋 跟单</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">下单人/需求人/收货人：通过订单列表跟进备货/发货进度</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">下单人/需求人/收货人：接收订单发货/送达/签收通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">🔄 售后</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">申请人/管理员：售后单列表查看售后进度</div><div class="cnote">取消订单功能待售后中心规划</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">申请人：接收售后结果通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">📊 对账</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">对账人：在对账列表查看对账状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">对账人：接收对账单通知</div><div class="cnote">由中台统一发放通知</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">🧾 开票</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">自主申请开票功能和开票进度展示</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">申请开票人：开票进度通知</div><div class="cnote">中台统一发邮件，官网增加站内消息？</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chg">💰 回款</div>
+      <div class="card ct"><span class="ctag tt">待开发</span><div class="ctext">官网前台暂无客户自主回款功能</div></div>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- ===== 行家助手·客户群 ===== -->
+<div class="section shkh">
+  <div class="section-header">
+    🤖 行家助手 · 客户群
+    <span class="badge" style="background:#bae7ff;color:#0050b3;">目前：企微 · 待实现：钉钉、飞书</span>
+    <span class="sdesc">负责人：@夏梦蛟(Sandra)</span>
+  </div>
+  <div class="flow-table">
+    <div class="flow-col">
+      <div class="col-hdr chb">🔍 找货</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户：发送文字描述，返回匹配商品清单</div><div class="cnote">问答场景，@机器人触发</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户：发送商品图片，返回匹配商品清单</div><div class="cnote">图片搜索找货</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">客户：接收行家助手推送的找货结果通知</div><div class="cnote">机器人主动推送</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">📦 商品信息</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户：查询指定SKU的交货周期</div><div class="cnote">问答场景，@机器人触发</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户：查询商品MSDS/TDS文件及检测报告</div><div class="cnote">问答场景，@机器人触发</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">🏪 商品池运营</div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">销售：商品自动上架后接收通知</div><div class="cnote">系统事件触发主动推送</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">🛒 下单 ✨</div>
+      <div class="card cn"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">发送采购/订单清单文件，AI自动解析并通知客服协助完成下单</div></div>
+      <div class="card cn"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">下单完成后，自动通知需求人「订单已提交成功」</div></div>
+    </div>
+    <div class="flow-col-wide">
+      <div class="col-hdr chb">📋 跟单（售中催交期）</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查询是否存在订单（含正式订单核验）</div><div class="cnote">售中催交期流程入口</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查询订单交期</div><div class="cnote">售中催交期核心节点</div></div>
+      <div class="sgl">已发货分支</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">① 签单已返回 → 展示签收状态</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">② 签单未返回但系统已签收</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">③ 发货&gt;5天未签收 → 主动推送异常提醒</div><div class="cnote">超时未签收异常告警</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">④ 发货&lt;5天 → 展示物流进行中状态</div></div>
+      <div class="sgl">未发货分支</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">① 有占库未发 → 显示占库库存状态</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">② 无占库有库存 → 展示备货状态</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">③ 无库存已产生负需求但未采购 → "未采购"</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">④ 已采购待供应商发货 → "待供应商发货"</div></div>
+      <div class="sgl">供应商发货分支</div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">① 供应商发货&gt;5天未到仓 → 推送异常提醒</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">② 供应商发货&lt;5天 → 展示在途状态</div></div>
+      <div class="sgl">其他查询</div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">客服：支持提拉交期操作</div><div class="cnote">仅客服有操作权限，二期规划</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查询订单物流状态</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查询订单时可查看客户物料号（SKU编号）</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">一句话查询订单附件（签单等）</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">使用VC/坤合单号查询并导出送货单</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">📊 订单汇总</div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">查询当前待发货订单数量及明细</div><div class="cnote">Larry需求补充</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">查询当前待开票订单数量及明细</div><div class="cnote">Larry需求补充</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">查询历史订单金额及购买类目统计</div><div class="cnote">Larry需求补充</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">🔄 售后</div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">查询售后单处理进度</div><div class="cnote">依赖售后中心能力基建</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">接收售后处理结果通知（售后进度push）</div><div class="cnote">系统事件触发主动推送</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">配送异常/错漏发推送及处理入口</div><div class="cnote">主动推送+处理入口；依赖售后中心</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">发起订单变更处理（改单）</div><div class="cnote">企微群+AI行家助手bot同步上线</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">📑 对账</div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">查询对账单状态</div><div class="cnote">问答场景，@机器人触发</div></div>
+      <div class="card ct"><span class="ctag tn">通知</span><span class="ctag tt">待开发</span><div class="ctext">接收对账单通知</div><div class="cnote">系统事件触发主动推送</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chb">🧾 开票</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客服：一句话发起开票（仅客服有权限）</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户：查询电子发票</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">主动推送前一工作日发票信息</div><div class="cnote">每日定时触发</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">接收开票进度通知</div><div class="cnote">系统事件触发主动推送</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">咨询对账开票进度；AI处理凭邮件开票</div><div class="cnote">依赖对账中心基建；计划10-12月上线</div></div>
+      <div class="card ct"><span class="ctag tf">功能</span><span class="ctag tt">待开发</span><div class="ctext">通过多轮对话完成开票流程</div><div class="cnote">计划10-12月上线</div></div>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- ===== 行家助手·商家群 ===== -->
+<div class="section shsj">
+  <div class="section-header">
+    🏭 行家助手 · 商家群
+    <span class="badge" style="background:#b5f5ec;color:#006d75;">供应商侧 · 企微群</span>
+    <span class="sdesc">负责人：@王兰兰</span>
+  </div>
+  <div class="flow-table">
+    <div class="flow-col-wide">
+      <div class="col-hdr cht">🤝 售前</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">紧急询报价：推送新询价单待报价</div><div class="cnote">企微个性化触达配置</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">订单竞价-商机发布：推送新竞价商机</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">订单竞价-未参与报价：推送竞价关闭通知，收集反馈</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">合同延期提醒：推送合同即将顺延一年提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">合同顺延成功提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">合同续签提醒：合同即将到期提醒续签</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">资质过期提醒：即将/已过期资质提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">商机优胜结果通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">下订单前询价：推送下单前询价消息</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">紧急需求询交期：推送紧急需求询交期消息</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">热门动销SKU竞报价邀请</div></div>
+    </div>
+    <div class="flow-col-wide">
+      <div class="col-hdr cht">📦 售中</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">客户订单信息播报（个别商家要求）</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">订单待处理：VC供应商推送待处理订单通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">未开通VC预警订单：推送预警订单提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">新订单合同发送：推送新订单合同及附件</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">订单变更合同发送：推送变更合同</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">等通知订单可以发货通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">直发退货订单到货确认通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">找知识：AI自动回复常见问题</div><div class="cnote">互动问答类</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查询直发客户订单号</div><div class="cnote">互动问答类</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">上传电子发票：自动识别验真并上传系统</div><div class="cnote">互动任务执行类</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">上传签单：自动识别并上传系统</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">上传合同：自动识别并上传系统</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">商家自主竞报价结果通知</div></div>
+    </div>
+    <div class="flow-col-wide">
+      <div class="col-hdr cht">🔄 售后</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">汇票签收催收通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">绩效评分：推送绩效评分，关注并改善</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">工单待处理：推送工单待处理通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">预付款通知：付款完成通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">应付款通知：付款完成通知</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">对账单待开票：提醒供应商对账、开票</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">发票待处理：异常发票需供应商处理</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">预付款催票：已付款未提供发票，催促开票</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr cht">📢 全场景通知</div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">商家通知：不限场景，临时或个性化通知</div><div class="cnote">企微配置个性化触达</div></div>
+    </div>
+  </div>
+</div>
+<div class="spacer"></div>
+
+<!-- ===== VC平台 ===== -->
+<div class="section svc">
+  <div class="section-header">
+    🏢 VC平台
+    <span class="badge" style="background:#efdbff;color:#531dab;">供应商自助服务平台 · 全流程覆盖</span>
+    <span class="sdesc">负责人：@王兰兰</span>
+  </div>
+  <div class="flow-table">
+    <div class="flow-col">
+      <div class="col-hdr chp">🚪 入驻</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">供应商在VC平台自主入驻，查看入驻状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">入驻审核节点通知、注册成功邮件&amp;短信</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">📋 发品</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">单个或批量发布商品，查看商品状态</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">单个或批量对商品报价，查看报价状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">商品审核人：商品中心提醒审核待办</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">💬 询报价</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">针对QTS询价进行报价，查询报价状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">询报价发布站内信通知；企微提醒</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">🎯 商机</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">待竞价商机展示，可竞价，查看竞价状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">商机发布：站内信+短信+邮件+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">商机优胜/未优胜结果展示</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">优胜/未优胜站内信通知；企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">资质缺失不能竞价 → 提醒补充资质</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">📜 招投标</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看招标信息，参与竞标，查看招投标状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">招投标发布：邮件通知供应商</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">中标/未中标结果展示</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">中标/未中标：邮件通知供应商</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">资质缺失不能参与招投标 → 提醒补充</div></div>
+    </div>
+    <div class="flow-col-wide">
+      <div class="col-hdr chp">📦 订单</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">确认订单、确认交期及数量，查看订单状态</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">新订单通知：站内信+短信+邮件+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">上传发货信息（物流单号/快递单）</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">订单变更通知：站内信+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看订单全生命周期状态</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">🔄 售后</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看售后单，处理售后申请</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">售后申请通知：站内信+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">违规申诉：查看违规记录，发起申诉</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">违规通知：站内信+企微提醒</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">💰 对账结算</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看对账单，确认对账，上传发票</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">对账单发布：站内信+邮件+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看付款状态，确认收款</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">付款完成：站内信+企微提醒</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">📈 绩效&amp;返利</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看绩效评分及明细，了解改善方向</div></div>
+      <div class="card ce"><span class="ctag tn">通知</span><span class="ctag te">现有</span><div class="ctext">绩效评分发布：站内信+企微提醒</div></div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">查看返利规则及返利金额</div></div>
+    </div>
+    <div class="flow-col">
+      <div class="col-hdr chp">🧭 行家罗盘</div>
+      <div class="card ce"><span class="ctag tf">功能</span><span class="ctag te">现有</span><div class="ctext">供应商查看自身经营数据全景（销售额/订单量/绩效/返利等）</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">行家助手 · 对客对商进度透出全景地图 · 2026.10 · 整理：夏梦蛟(Sandra)</div>
+</body>
+</html>
